@@ -1,23 +1,130 @@
-# Compiled class file
+# .gitignore for maven
+target/
+*.releaseBackup
+.git/*
+
+#IDE support files
+.classpath
+.launch
+.project
+.settings
+.idea/*
+*.tmproj
+ivy*
+eclipse
+
+# Default HSQL database files for projection mode
+/prodDb.*
+
+# general HSQL database files
+*Db.properties
+*Db.script
+
+# Logs
+/stacktrace.log
+/test/reports
+/logs
+*.log
+*.log.*
+
+# Plugin release file
+/*.zip
+/*.zip.sha1
+
+# Older plugin install locations
+/plugins
+/web-app/plugins
+/web-app/WEB-INF/classes
+
+# Temporary build files
+target/
+**/target/
+out/
+build/
+
+# Other
+*.iws
+
+# .gitignore for java
 *.class
 
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# Package files
 *.jar
 *.war
-*.nar
 *.ear
-*.zip
+*.tar
 *.tar.gz
-*.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# .gitignore for eclipse
+*.pydevproject
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+
+# External tool builders
+.externalToolBuilders/
+
+# CTD-specific
+.cproject
+
+# PDT-specific
+.buildpath
+
+# .gitignore for intellij
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# .gitignore for windows
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# .gitignore for mac os x
+.DS_Store
+.AppleDouble
+.LSoverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Thashes
+
+# Hack for graddle wrapper
+!wrapper/*.jar
+!**/wrapper/*.jar
+
+#Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.war
+*.ear
+*.rar
+*.tar
+*.zip
+*.tgz
+
+# NODE_MODULE
+**/mode_modules/
+**/.factorypath
