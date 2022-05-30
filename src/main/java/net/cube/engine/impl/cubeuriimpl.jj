@@ -1,0 +1,237 @@
+options {
+    LOOKAHEAD = 1;
+    STATIC = false;
+}
+
+PARSER_BEGIN(CubeUriImpl)
+
+package net.cube.engine.impl;
+
+import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Map;
+
+import lombok.Getter;
+
+import net.cube.engine.CubeUri;
+import net.cube.engine.CubeRuntimeException;
+
+@Getter
+public class CubeUriImpl implements CubeUri {
+
+    private String origin;
+
+    private String scheme;
+
+    private String protocol;
+
+    private String hostName;
+
+    private Integer port;
+
+    private String path;
+
+    private String query;
+
+    private String fragment;
+
+    private Map<String, Map<String, String>> pathParams = new HashMap(16);
+
+    private Map<String, String> queryParams = new HashMap(16);
+
+    public CubeUriImpl(String uri) {
+        this(new StringReader(uri));
+        try {
+            parse();
+        } catch (Exception e) {
+            throw new CubeRuntimeException(e);
+        }
+    }
+
+    private String[] disassembleNameValuePair(String nameValuePair) {
+        if (nameValuePair == null || "".equals(nameValuePair)) {
+            return new String[]{"", ""};
+        }
+        int index = nameValuePair.indexOf("=");
+        return new String[]{nameValuePair.substring(0, index), nameValuePair.substring(index + 1)};
+    }
+
+}
+PARSER_END(CubeUriImpl)
+
+TOKEN : {
+    <#DIGIT                 :                       ["0"-"9"]>
+}
+
+TOKEN : {
+    <#CHARACTER             :                       (["a"-"z"]|["A"-"Z"])>
+}
+
+TOKEN : {
+    <#DOT                   :                       ".">|
+    <#LN                    :                       "-">|
+    <#UL                    :                       "_">
+}
+
+TOKEN : {
+    <#NAME                  :                       (<DIGIT>|<CHARACTER>)+(((<UL>)*|(<LN>)*)?(<DIGIT>|<CHARACTER>)+)*>|
+    <#VALUE                 :                       (~["&", "\"", "#", "="])*>
+}
+
+TOKEN : {
+    <QUESTION_MARK          :                       "?">|
+    <COLON                  :                       ":">|
+    <MUMBER_SIGN            :                       "#">|
+    <AND_SIGN               :                       "&">|
+    <EQUALS_SIGN            :                       "=">|
+    <PERCENT_SIGN           :                       "%">|
+    <SLANT                  :                       "/">|
+    <SEMICOLON              :                       ";">
+}
+
+TOKEN : {
+    <DOUBLE_SLANT           :                       "//">
+}
+
+TOKEN : {
+    <#IPV4_SEGMENT          :                       (("2""5"["0"-"5"])|("2"["0"-"4"]<DIGIT>)|("1"<DIGIT><DIGIT>)|<DIGIT>)>|
+    <IPV4                   :                       (<IPV4_SEGMENT><DOT><IPV4_SEGMENT><DOT><IPV4_SEGMENT><DOT><IPV4_SEGMENT>)>
+}
+
+TOKEN : {
+    <PORT                   :                       ("6"["0"-"5"]["0"-"5"]["0"-"3"]["0"-"5"])|(["1"-"5"]<DIGIT><DIGIT><DIGIT><DIGIT>)|(["1"-"9"]<DIGIT><DIGIT><DIGIT>)|(["1"-"9"]<DIGIT><DIGIT>)|(["1"-"9"]<DIGIT>)|(["1"-"9"])>
+}
+
+TOKEN : {
+    <SCHEME_NAME            :                       <NAME>>
+}
+
+TOKEN : {
+    <#PLACEHOLDER_OB        :                       "{">|
+    <#PLACEHOLDER_CB        :                       "}">
+}
+
+TOKEN : {
+    <#PLACEHOLDER           :                       <PLACEHOLDER_OB>(~["/", "?", "#", ":"])+<PLACEHOLDER_CB>>
+}
+
+TOKEN : {
+    <#AUTHORITY             :                       (<DIGIT>|<CHARACTER>|<PLACEHOLDER>)+(((<DOT>)?|(<UL>)*|(<LN>)*)?(<DIGIT>|<CHARACTER>|<PLACEHOLDER>)+)*>
+}
+
+TOKEN : {
+    <HOSTNAME               :                       (<AUTHORITY>|<IPV4>)>
+}
+
+TOKEN : {
+    <KVPAIR                 :                        <NAME><EQUALS_SIGN><VALUE>>
+}
+
+TOKEN : {
+    <PATH                   :                       (<SLANT>(~["/", "?", "#", ":"])+)>|
+    <FRAGMENT               :                       (<MUMBER_SIGN>(~[])+)>
+}
+
+private void parse() :
+{
+    Token scheme;
+}
+{
+    (scheme = <SCHEME_NAME>)
+    {
+        this.scheme = scheme.image;
+    }
+    <COLON>
+    (parseProtocolAndHostName())
+    (parsePath())*
+    (parseQuery())?
+    (parseFragment())?
+}
+
+private void parseProtocolAndHostName() :
+{
+    Token hostName;
+    Token port;
+}
+{
+    (parseActualProtocol())?
+    (
+        <DOUBLE_SLANT>hostName=<HOSTNAME>
+        {
+            this.hostName = hostName.image;
+        }
+        (
+            <COLON>port = <PORT>
+            {
+                this.port = Integer.valueOf(port.image);
+            }
+        )?
+    )?
+}
+
+private void parseActualProtocol() :
+{
+    Token protocol;
+}
+{
+    protocol = <SCHEME_NAME><COLON>
+    {
+        this.protocol = protocol.image;
+    }
+}
+
+private void parsePath() :
+{
+    Token pathSegment;
+}
+{
+    pathSegment = <PATH>
+    {
+        this.path = (this.path == null ? "" : this.path) + pathSegment.image;
+    }
+    (
+        {
+            Token kvPair;
+        }
+        <SEMICOLON>kvPair = <KVPAIR>
+        {
+            if (!this.pathParams.containsKey(pathSegment.image)) {
+                this.pathParams.put(pathSegment.image, new HashMap(16));
+            }
+            String[] kv = disassembleNameValuePair(kvPair.image);
+            this.pathParams.get(pathSegment.image).put(kv[0], kv[1]);
+        }
+    )*
+}
+
+private void parseQuery() :
+{
+}
+{
+    <QUESTION_MARK>(parseQueryParams())+
+}
+
+private void parseQueryParams() :
+{
+    Token kvPair;
+}
+{
+    (<AND_SIGN>)?kvPair=<KVPAIR>
+    {
+        String kvString = kvPair.image;
+        String[] kv = disassembleNameValuePair(kvString);
+        this.queryParams.put(kv[0], kv[1]);
+        this.query = this.query == null || "".equals(this.query) ? kvString : this.query.concat("&" + kvString);
+    }
+}
+
+private void parseFragment() :
+{
+    Token fragment;
+}
+{
+    fragment = <FRAGMENT>
+    {
+        this.fragment = fragment.image.substring(1);
+    }
+}
