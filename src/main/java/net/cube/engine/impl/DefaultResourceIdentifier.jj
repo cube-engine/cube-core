@@ -3,7 +3,7 @@ options {
     STATIC = false;
 }
 
-PARSER_BEGIN(CubeUriImpl)
+PARSER_BEGIN(DefaultResourceIdentifier)
 
 package net.cube.engine.impl;
 
@@ -13,11 +13,11 @@ import java.util.Map;
 
 import lombok.Getter;
 
-import net.cube.engine.CubeUri;
+import net.cube.engine.ResourceIdentifier;
 import net.cube.engine.CubeRuntimeException;
 
 @Getter
-public class CubeUriImpl implements CubeUri {
+public class DefaultResourceIdentifier implements ResourceIdentifier {
 
     private String origin;
 
@@ -39,7 +39,7 @@ public class CubeUriImpl implements CubeUri {
 
     private Map<String, String> queryParams = new HashMap(16);
 
-    public CubeUriImpl(String uri) {
+    public DefaultResourceIdentifier(String uri) {
         this(new StringReader(uri));
         try {
             parse();
@@ -57,7 +57,7 @@ public class CubeUriImpl implements CubeUri {
     }
 
 }
-PARSER_END(CubeUriImpl)
+PARSER_END(DefaultResourceIdentifier)
 
 TOKEN : {
     <#DIGIT                 :                       ["0"-"9"]>
