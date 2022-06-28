@@ -6,7 +6,7 @@ import java.util.Map;
  * @author pluto
  * @date 2022/5/31
  */
-public interface CubeUri {
+public interface ResourceIdentifier {
 
     String getScheme();
 
