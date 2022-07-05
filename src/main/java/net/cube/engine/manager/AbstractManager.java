@@ -1,7 +1,6 @@
 package net.cube.engine.manager;
 
-import net.cube.engine.Configurable;
-import net.cube.engine.Launcher;
+import net.cube.engine.Manager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author pluto
  * @date 2022/5/16
  */
-public abstract class AbstractManager implements Launcher, Configurable {
+public abstract class AbstractManager implements Manager {
 
     protected static Logger LOG = LoggerFactory.getLogger(AbstractManager.class);
 
